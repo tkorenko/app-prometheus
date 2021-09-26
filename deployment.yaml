@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-prometheus
+  template:
+    metadata:
+      labels:
+        app: app-prometheus
+      annotations:
+        ad.datadoghq.com/app-prometheus.check_names: |
+          ["openmetrics"]
+        ad.datadoghq.com/app-prometheus.init_configs: |
+          [{}]
+        ad.datadoghq.com/app-prometheus.instances: |
+          [
+            {
+              "prometheus_url": "http://%%host%%:%%port%%/metrics",
+              "namespace": "custom_metrics",
+              "metrics": [
+                {
+                  "app_prometheus_counter": "app_prometheus.counter",
+                  "app_prometheus_gauge": "app_prometheus.gauge"
+                }
+              ]
+            }
+          ]
+    spec:
+      containers:
+      - name: app-prometheus
+        image: synfinmelab/app-prometheus:0.2
+        ports:
+        - containerPort: 8081
